@@ -1,9 +1,29 @@
-# Nova Framework
+# 🧾 miCaja
 
-**Nova** es un micro-framework MVC en PHP, pensado como **backend de API JSON** con un **frontend Vue 3 +
-Tailwind** ya integrado. Es ligero y fácil de entender: rutas explícitas, validación de datos, manejo de
-errores central y acceso a base de datos con PDO. Ideal para aprender MVC o levantar proyectos pequeños y
-medianos rápido.
+**miCaja** es un **sistema de caja (punto de venta)** para un **local de comida rápida**. Permite registrar
+y gestionar los **productos** del local —con su **precio**, **descripción**, **cantidad disponible** e
+**imagen**— para llevar el control de la venta desde una interfaz simple y rápida.
+
+Está construido sobre **nova**, un micro-framework MVC propio en PHP (backend de API JSON) con un frontend
+**Vue 3 + Tailwind** ya integrado.
+
+> **Estado actual:** el proyecto parte de la plantilla del framework (incluye un CRUD de ejemplo de
+> *tareas*). El módulo de **productos / caja** descrito abajo es el objetivo en desarrollo.
+
+---
+
+## 🎯 Funcionalidades
+
+El local de comida rápida podrá:
+
+- **Agregar productos** con:
+  - 🏷️ **Nombre** y **descripción**
+  - 💲 **Precio**
+  - 📦 **Cantidad disponible** (stock)
+  - 🖼️ **Imagen** del producto
+- **Editar y eliminar** productos.
+- **Listar el catálogo** de productos disponibles.
+- *(Próximamente)* registrar ventas y descontar del stock.
 
 ---
 
@@ -13,23 +33,21 @@ medianos rápido.
 - **Frontend:** Vue 3 + Tailwind CSS v4, compilado con Vite
 - **Autoload:** Composer (PSR-4)
 - **Entorno:** Laragon (Apache + MySQL)
+- **Iconos:** Heroicons · **Modo oscuro** incluido
 
 ---
 
 ## 🗂️ Estructura del proyecto
 
 ```
-nova/
+miCaja/
 ├── app/                      # TU código
 │   ├── Controllers/          #   Controladores (reciben la petición, responden JSON)
-│   │   ├── HomeController.php
-│   │   └── TareaController.php
 │   └── Models/               #   Modelos (hablan con la base de datos)
-│       └── TareaModel.php
 │
-├── core/                     # El núcleo del framework (normalmente no lo tocas)
+├── core/                     # El núcleo del framework nova (normalmente no lo tocas)
 │   ├── Router.php            #   Resuelve la URL -> Controlador@metodo
-│   ├── Controller.php        #   Clase base de los controladores (helper json())
+│   ├── Controller.php        #   Clase base de los controladores (helpers exito()/error())
 │   ├── Model.php             #   Clase base de los modelos ($this->db, find/all/query)
 │   ├── Database.php          #   Conexión PDO (singleton, prepared statements)
 │   ├── Request.php           #   Lee la entrada: body(), input(), all(), validar()
@@ -43,14 +61,11 @@ nova/
 │   └── database.php          # TUS credenciales (NO versionado)
 │
 ├── routes/api.php            # Aquí defines TODAS tus rutas
-├── database/nova.sql         # SQL de ejemplo (tabla "tareas")
 │
 ├── resources/                # Frontend (código fuente Vue 3 + Tailwind)
 │   ├── App.vue
-│   ├── main.js, style.css, api.js
+│   ├── main.js, style.css, api.js, theme.js
 │   └── components/
-│       ├── ConexionBackend.vue
-│       └── Tareas.vue
 │
 ├── public/                   # Webroot: index.php (API) + build de la SPA
 ├── package.json, vite.config.js
@@ -75,8 +90,8 @@ frontend **Vue** (la vista) lo muestra.
 
 1. **Clona** el repo dentro de la carpeta `www` de Laragon:
    ```bash
-   git clone https://github.com/Brahyant-code/nova.git
-   cd nova
+   git clone https://github.com/Brahyant-code/miCaja.git
+   cd miCaja
    ```
 
 2. **Backend** — instala el autoload de Composer:
@@ -90,46 +105,38 @@ frontend **Vue** (la vista) lo muestra.
    ```
    Edita [config/database.php](config/database.php) con el nombre de tu BD, usuario y contraseña.
 
-4. **Importa el SQL de ejemplo** (crea la BD y la tabla `tareas` con datos de prueba):
-   ```bash
-   mysql -u root < database/nova.sql
-   ```
-   *(o impórtalo desde phpMyAdmin en Laragon).*
-
-5. **Frontend** — instala las dependencias:
+4. **Frontend** — instala las dependencias:
    ```bash
    npm install
    ```
 
-6. **Levanta el frontend** (elige una opción):
+5. **Levanta el frontend** (elige una opción):
    - **Desarrollo con recarga en caliente:**
      ```bash
      npm run dev          # abre http://localhost:5173
      ```
    - **Compilar para servir vía Laragon:**
      ```bash
-     npm run build        # luego abre http://localhost/nova/
+     npm run build        # luego abre http://localhost/miCaja/
      ```
-
-✅ Listo. Deberías ver la página con el estado de conexión y el CRUD de tareas funcionando.
 
 ---
 
 ## 🛣️ Rutas
 
 Defines todas tus rutas en [routes/api.php](routes/api.php) con su **verbo HTTP** y destino
-`Controlador@metodo`. Soportan parámetros dinámicos con `{...}`:
+`Controlador@metodo`. Soportan parámetros dinámicos con `{...}`. Así se verá el módulo de productos:
 
 ```php
-$router->get('/',              'HomeController@index');
-$router->get('/tareas',        'TareaController@index');
-$router->get('/tareas/{id}',   'TareaController@ver');
-$router->post('/tareas',       'TareaController@crear');
-$router->delete('/tareas/{id}','TareaController@eliminar');
+$router->get('/productos',         'ProductoController@index');    // listar catálogo
+$router->get('/productos/{id}',    'ProductoController@ver');       // ver uno
+$router->post('/productos',        'ProductoController@crear');     // crear (con imagen)
+$router->put('/productos/{id}',    'ProductoController@editar');    // editar
+$router->delete('/productos/{id}', 'ProductoController@eliminar');  // eliminar
 ```
 
 > ⚠️ Se evalúan **en orden**: la primera que coincide gana. Pon las rutas fijas antes que las que tienen
-> `{parametro}`. Si ninguna coincide, Nova responde `404` en JSON.
+> `{parametro}`. Si ninguna coincide, se responde `404` en JSON.
 
 ---
 
@@ -141,15 +148,15 @@ aparece cuando hay un detalle de error que mostrar** (por ejemplo, validación).
 ```json
 // Respuesta exitosa
 {
-  "mensaje": "Tarea creada",
-  "datos": { "id": 4, "titulo": "..." }
+  "mensaje": "Producto creado",
+  "datos": { "id": 4, "nombre": "Hamburguesa", "precio": 4500, "stock": 20 }
 }
 
 // Error de validación (aquí sí aparece "errores")
 {
   "mensaje": "Datos inválidos",
   "datos": null,
-  "errores": { "titulo": ["El campo titulo es obligatorio."] }
+  "errores": { "precio": ["El campo precio es obligatorio."] }
 }
 ```
 
@@ -169,14 +176,15 @@ formato automáticamente.
 
 ---
 
-## 🧩 Ejemplo completo: Controller + Model + Vista
+## 🧩 Cómo crear un módulo (Controller + Model + Vista)
 
-El proyecto incluye un CRUD de **tareas** listo y funcionando. Úsalo como plantilla.
+El proyecto incluye un CRUD de ejemplo (**tareas**) listo y funcionando. Úsalo como plantilla para crear
+el módulo de **productos**.
 
 ### 1) El Modelo — habla con la base de datos
 
-[app/Models/TareaModel.php](app/Models/TareaModel.php). Hereda de `Core\Model`, que ya te da la conexión
-PDO (`$this->db`) y atajos seguros: `find()`, `all()` y `query()` (todos con prepared statements).
+El modelo hereda de `Core\Model`, que ya te da la conexión PDO (`$this->db`) y atajos seguros: `find()`,
+`all()` y `query()` (todos con prepared statements).
 
 ```php
 <?php
@@ -184,16 +192,19 @@ namespace App\Models;
 
 use Core\Model;
 
-class TareaModel extends Model {
+class ProductoModel extends Model {
     public function listar() {
-        return $this->query('SELECT * FROM tareas ORDER BY id DESC');
+        return $this->query('SELECT * FROM productos ORDER BY id DESC');
     }
     public function buscar($id) {
-        return $this->find('tareas', $id);   // SELECT por id, o null
+        return $this->find('productos', $id);   // SELECT por id, o null
     }
-    public function crear($titulo) {
-        $stmt = $this->db->prepare('INSERT INTO tareas (titulo) VALUES (?)');
-        $stmt->execute([$titulo]);
+    public function crear($d) {
+        $stmt = $this->db->prepare(
+            'INSERT INTO productos (nombre, descripcion, precio, stock, imagen)
+             VALUES (?, ?, ?, ?, ?)'
+        );
+        $stmt->execute([$d['nombre'], $d['descripcion'], $d['precio'], $d['stock'], $d['imagen']]);
         return (int) $this->db->lastInsertId();
     }
 }
@@ -201,8 +212,7 @@ class TareaModel extends Model {
 
 ### 2) El Controlador — recibe la petición y responde
 
-[app/Controllers/TareaController.php](app/Controllers/TareaController.php). Hereda de `Core\Controller`
-(te da `$this->exito()` y `$this->error()`). Usa el Modelo y valida la entrada.
+Hereda de `Core\Controller` (te da `$this->exito()` y `$this->error()`). Usa el Modelo y valida la entrada.
 
 ```php
 <?php
@@ -210,37 +220,41 @@ namespace App\Controllers;
 
 use Core\Controller;
 use Core\Request;
-use App\Models\TareaModel;
+use App\Models\ProductoModel;
 
-class TareaController extends Controller {
-    private $tareas;
+class ProductoController extends Controller {
+    private $productos;
     public function __construct() {
-        $this->tareas = new TareaModel();
+        $this->productos = new ProductoModel();
     }
 
-    public function index() {                       // GET /tareas
-        $this->exito($this->tareas->listar());
+    public function index() {                        // GET /productos
+        $this->exito($this->productos->listar());
     }
 
-    public function crear() {                        // POST /tareas
-        $datos = Request::validar(['titulo' => 'required|min:3|max:255']);
-        $id = $this->tareas->crear($datos['titulo']);
-        $this->exito($this->tareas->buscar($id), 'Tarea creada', 201);
+    public function crear() {                         // POST /productos
+        $datos = Request::validar([
+            'nombre'      => 'required|min:2|max:120',
+            'descripcion' => 'string|max:500',
+            'precio'      => 'required|numeric|min:0',
+            'stock'       => 'required|numeric|min:0',
+        ]);
+        $id = $this->productos->crear($datos);
+        $this->exito($this->productos->buscar($id), 'Producto creado', 201);
     }
 }
 ```
 
 ### 3) La Vista — Vue muestra los datos
 
-[resources/components/Tareas.vue](resources/components/Tareas.vue) consume la API con el helper
-[resources/api.js](resources/api.js) (`get/post/put/del`):
+Los componentes consumen la API con el helper [resources/api.js](resources/api.js) (`get/post/put/del`):
 
 ```js
 import api from '../api.js'
 
-const tareas = await api.get('tareas')              // GET
-await api.post('tareas', { titulo: 'Nueva tarea' }) // POST
-await api.del(`tareas/${id}`)                        // DELETE
+const productos = await api.get('productos')                                   // GET
+await api.post('productos', { nombre: 'Hamburguesa', precio: 4500, stock: 20 }) // POST
+await api.del(`productos/${id}`)                                                // DELETE
 ```
 
 En el template se renderiza con Tailwind y se muestran los errores de validación que devuelve el backend.
@@ -257,41 +271,30 @@ import { PlusIcon, TrashIcon } from '@heroicons/vue/24/outline'  // o /24/solid
 
 <template>
   <button class="flex items-center gap-1 text-emerald-600">
-    <PlusIcon class="w-5 h-5" /> Agregar
+    <PlusIcon class="w-5 h-5" /> Agregar producto
   </button>
 </template>
 ```
 
-Mira [resources/components/Tareas.vue](resources/components/Tareas.vue) para ejemplos reales.
-
 ### Modo oscuro — ya incluido
 
-El framework trae **modo oscuro** configurado y funcionando, con un botón (sol/luna) en el encabezado.
+El proyecto trae **modo oscuro** configurado y funcionando, con un botón (sol/luna) en el encabezado.
 Respeta la preferencia del sistema la primera vez y recuerda la elección del usuario en `localStorage`
-(sin parpadeo al cargar).
-
-Para que tus elementos cambien en oscuro, agrega variantes `dark:` de Tailwind:
-
-```vue
-<div class="bg-white text-gray-800 dark:bg-gray-800 dark:text-gray-100">…</div>
-```
-
-La lógica vive en [resources/theme.js](resources/theme.js) (`alternarTema()`, `oscuro`) y el modo por
-clase está activado en [resources/style.css](resources/style.css) con `@custom-variant dark`.
+(sin parpadeo al cargar). La lógica vive en [resources/theme.js](resources/theme.js) y el modo por clase
+está activado en [resources/style.css](resources/style.css) con `@custom-variant dark`.
 
 ---
 
 ## 🛡️ Validación de datos (`Request::validar`)
 
-En cualquier controlador, validas la entrada con un arreglo de reglas. **Si algo falla, Nova responde
-`422` con los errores automáticamente** y tu método no continúa:
+En cualquier controlador, validas la entrada con un arreglo de reglas. **Si algo falla, se responde `422`
+con los errores automáticamente** y tu método no continúa:
 
 ```php
 $datos = Request::validar([
     'nombre' => 'required',
-    'email'  => 'required|email',
-    'edad'   => 'numeric|min:18',
-    'bio'    => 'string|max:200',
+    'precio' => 'required|numeric|min:0',
+    'stock'  => 'required|numeric|min:0',
 ]);
 // Si llegas aquí, $datos ya está validado.
 ```
@@ -307,17 +310,7 @@ $datos = Request::validar([
 | `min:n`      | Número ≥ n, o texto con al menos n caracteres                    |
 | `max:n`      | Número ≤ n, o texto con máximo n caracteres                      |
 
-Las reglas se combinan con `|`. Respuesta cuando falla (HTTP 422):
-
-```json
-{
-  "mensaje": "Datos inválidos",
-  "datos": null,
-  "errores": {
-    "titulo": ["El campo titulo debe tener al menos 3 caracteres."]
-  }
-}
-```
+Las reglas se combinan con `|`.
 
 > ¿Necesitas otra regla? Agrega un método `reglaX()` en [core/Validator.php](core/Validator.php) y ya
 > podrás usar `'x'`.
@@ -339,30 +332,7 @@ El nivel de detalle lo controla `debug` en [config/app.php](config/app.php):
 - `'debug' => false` (producción): el cliente solo ve el mensaje genérico de arriba.
 - `'debug' => true` (desarrollo): `mensaje` trae el error real y `errores` su ubicación.
 
-```json
-{
-  "mensaje": "SQLSTATE[42S02]: Base table or view not found...",
-  "datos": null,
-  "errores": {
-    "archivo": "C:\\laragon\\www\\nova\\core\\Database.php",
-    "linea": 18
-  }
-}
-```
-
 Así nunca filtras información sensible al usuario, pero como desarrollador ves todo lo que necesitas.
-
----
-
-## 📋 Endpoints del ejemplo
-
-| Método | Ruta            | Acción                          |
-|--------|-----------------|---------------------------------|
-| GET    | `/home`         | Datos de conexión (HomeController) |
-| GET    | `/tareas`       | Lista todas las tareas          |
-| GET    | `/tareas/{id}`  | Muestra una tarea (404 si no existe) |
-| POST   | `/tareas`       | Crea una tarea (valida `titulo`)|
-| DELETE | `/tareas/{id}`  | Elimina una tarea               |
 
 ---
 
