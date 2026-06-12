@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Si alguien intenta entrar a la raíz, lo mandamos internamente a /public
+    RewriteRule ^$ public/ [L]
+
+    # Si escriben cualquier otra ruta (ej: nova/usuarios), también se la pasamos a /public
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

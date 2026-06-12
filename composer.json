@@ -1,0 +1,11 @@
+{
+    "name": "nova/framework",
+    "description": "Mi propio framework MVC ligero",
+    "type": "project",
+    "autoload": {
+        "psr-4": {
+            "Core\\": "core/",
+            "App\\": "app/"
+        }
+    }
+}

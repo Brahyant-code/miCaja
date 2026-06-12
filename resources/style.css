@@ -1,0 +1,10 @@
+@import "tailwindcss";
+
+/* Modo oscuro por clase: las utilidades dark:* se activan cuando <html> tiene la clase "dark".
+   (En vez del comportamiento por defecto de Tailwind v4, que sigue la preferencia del sistema.) */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Desplazamiento suave al navegar con los enlaces ancla del header. */
+html {
+  scroll-behavior: smooth;
+}
