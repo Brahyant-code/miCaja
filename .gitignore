@@ -18,3 +18,7 @@ Thumbs.db
 # Artefactos del build de Vite (se regeneran con "npm run build")
 /public/index.html
 /public/assets/
+
+# Imágenes subidas de productos (no versionar el contenido, sí la carpeta)
+/public/uploads/productos/*
+!/public/uploads/productos/.gitkeep

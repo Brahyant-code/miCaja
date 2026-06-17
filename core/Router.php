@@ -12,6 +12,12 @@ class Router {
         'DELETE' => [],
     ];
 
+    private $publicRoutes = [
+        '',
+        'home',
+        'login',
+    ];
+
     // --- Registro de rutas (estilo amigable) ---
     public function get($ruta, $accion)    { return $this->addRoute('GET', $ruta, $accion); }
     public function post($ruta, $accion)   { return $this->addRoute('POST', $ruta, $accion); }
@@ -20,6 +26,7 @@ class Router {
 
     private function addRoute($verbo, $ruta, $accion) {
         $this->routes[$verbo][] = [
+            'path'    => trim($ruta, '/'),
             'pattern' => $this->compilar($ruta),
             'action'  => $accion,
         ];
@@ -67,12 +74,26 @@ class Router {
         foreach ($this->routes[$verbo] as $ruta) {
             if (preg_match($ruta['pattern'], $url, $matches)) {
                 $params = array_slice($matches, 1); // valores capturados {..}
+                if (!$this->isRoutePublic($ruta['path'])) {
+                    $this->requireAuth();
+                }
                 return $this->despachar($ruta['action'], $params);
             }
         }
 
         // 4. Sin coincidencia
         $this->notFound();
+    }
+
+    private function isRoutePublic($ruta) {
+        return in_array(trim($ruta, '/'), $this->publicRoutes, true);
+    }
+
+    private function requireAuth() {
+        $token = \Core\Auth::obtenerToken();
+        if (!$token || !\Core\Auth::verificarToken($token)) {
+            Response::error('No autorizado', 401);
+        }
     }
 
     // Resuelve "Controlador@metodo" e invoca el método con los parámetros.

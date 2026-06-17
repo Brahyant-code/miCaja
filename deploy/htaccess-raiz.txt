@@ -1,0 +1,19 @@
+# ====================================================================
+# .htaccess para la RAÍZ de InfinityFree (htdocs/)
+#
+# Sube este archivo a htdocs/ con el nombre EXACTO ".htaccess"
+# (con el punto inicial, sin la extensión .txt).
+#
+# Qué hace: reescribe TODAS las peticiones hacia la carpeta public/,
+# de modo que el backend (public/index.php) y la SPA (public/index.html)
+# se sirvan desde la raíz del dominio, sin exponer app/ core/ config/ vendor/.
+# ====================================================================
+
+# La SPA (index.html) tiene prioridad sobre index.php en la raíz de public/
+DirectoryIndex index.html index.php
+
+RewriteEngine On
+
+# Evita un bucle: si la URL ya apunta a public/, no la reescribas otra vez
+RewriteCond %{REQUEST_URI} !^/public/
+RewriteRule ^(.*)$ public/$1 [L]
