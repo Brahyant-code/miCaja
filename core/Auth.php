@@ -55,6 +55,9 @@ class Auth {
 
         if (!empty($_SERVER['HTTP_AUTHORIZATION'])) {
             $authHeader = $_SERVER['HTTP_AUTHORIZATION'];
+        } elseif (!empty($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+            // Apache en CGI/FastCGI suele exponerla con prefijo REDIRECT_ tras el rewrite
+            $authHeader = $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
         } elseif (function_exists('apache_request_headers')) {
             $headers = apache_request_headers();
             if (!empty($headers['Authorization'])) {
